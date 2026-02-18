@@ -925,8 +925,8 @@ void ShooterGame::DrawHud(Graphics& g) {
 
 void ShooterGame::DrawShopOverlay(Graphics& g) {
     FillRoundRect(g, RectF(90.0f, 420.0f, 540.0f, 420.0f), 24.0f, Color(228, 8, 22, 40));
-    DrawText(g, L"STAGE CLEAR SHOP", RectF(120.0f, 452.0f, 480.0f, 56.0f), 42.0f, Color(255, 255, 221, 132),
-             StringAlignmentCenter, FontStyleBold, L"Arial Black");
+    DrawText(g, L"ステージクリア ショップ", RectF(110.0f, 454.0f, 500.0f, 54.0f), 34.0f,
+             Color(255, 255, 221, 132), StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
 
     DrawText(g, L"コイン: " + FormatNumber(shopCoins_), RectF(120.0f, 514.0f, 480.0f, 34.0f), 28.0f,
              Color(255, 241, 248, 255), StringAlignmentCenter, FontStyleBold, L"Arial Black");
@@ -941,7 +941,7 @@ void ShooterGame::DrawShopOverlay(Graphics& g) {
     DrawText(g, L"[2] 最大HP+1 (3コイン)", RectF(144.0f, 676.0f, 432.0f, 36.0f), 24.0f,
              Color(255, 245, 247, 250), StringAlignmentNear, FontStyleBold, L"Yu Gothic UI");
 
-    DrawText(g, L"ENTER / SPACE で次のステージへ", RectF(120.0f, 748.0f, 480.0f, 32.0f), 22.0f,
+    DrawText(g, L"ENTER / SPACE で次のステージへ", RectF(120.0f, 748.0f, 480.0f, 32.0f), 20.0f,
              Color(255, 255, 232, 156), StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
 }
 
