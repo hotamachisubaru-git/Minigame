@@ -18,7 +18,7 @@ StageBook::StageBook() {
         spec.enemySpawnMaxSec = std::max(0.36f, 1.10f - static_cast<float>(i) * 0.04f);
         spec.enemySpeedMin = 96.0f + static_cast<float>(i) * 10.0f;
         spec.enemySpeedMax = 155.0f + static_cast<float>(i) * 12.0f;
-        spec.enemyHpMin = std::max(1, 2 * kEnemyHpN * spec.stageNumber);
+        spec.enemyHpMin = std::max(1, 5 * kEnemyHpN * spec.stageNumber);
         spec.enemyHpMax = spec.enemyHpMin;
         spec.ticketSpawnMinSec = std::max(0.85f, 1.45f - static_cast<float>(i) * 0.05f);
         spec.ticketSpawnMaxSec = std::max(1.35f, 2.25f - static_cast<float>(i) * 0.05f);
