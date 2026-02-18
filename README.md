@@ -10,6 +10,12 @@ Windows x64 向けの C++ シューティングミニゲームです。
   - 自機は常時オートショット
   - 敵を撃破してスコア獲得
   - 上から降るチケットを回収
+- ステージ進行
+  - 全10ステージ
+  - 各ステージ終盤でボス戦
+  - ボス撃破で次ステージへ遷移
+- ポーズ
+  - `P` キーでポーズ / 再開
 - チケット強化
   - 回収したチケットは `P` カウンタに加算
   - チケット数に応じて `POWER Lv.` 上昇
@@ -60,6 +66,7 @@ cmake --build --preset release-x64
   - `W` `A` `S` `D`: 移動
   - `↑` `↓` `←` `→`: 移動
   - `Shift` + 移動: 低速移動
+  - `P`: ポーズ / 再開
   - `R`: ゲームオーバー後にリトライ
   - `M`: BGM ON/OFF
   - `Esc`: 終了
@@ -71,5 +78,10 @@ cmake --build --preset release-x64
 ├─ README.md
 ├─ assets/
 └─ src/
+   ├─ asset_catalog.cpp / .h
+   ├─ game_app.cpp / .h
+   ├─ game_types.h
+   ├─ shooter_game.cpp / .h
+   ├─ stage_book.cpp / .h
    └─ main.cpp
 ```

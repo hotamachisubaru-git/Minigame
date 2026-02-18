@@ -21,7 +21,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(PticketGetter WIN32
+    src/asset_catalog.cpp
+    src/game_app.cpp
     src/main.cpp
+    src/shooter_game.cpp
+    src/stage_book.cpp
 )
 
 target_compile_definitions(PticketGetter PRIVATE
