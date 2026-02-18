@@ -56,8 +56,8 @@ struct BossState {
     float radius = 56.0f;
     float movePhase = 0.0f;
     float shotCooldown = 0.0f;
-    int hp = 0;
-    int maxHp = 0;
+    long long hp = 0;
+    long long maxHp = 0;
 };
 
 struct StageSpec {
@@ -73,7 +73,7 @@ struct StageSpec {
     float ticketSpawnMaxSec = 2.1f;
     float ticketSpeedMin = 72.0f;
     float ticketSpeedMax = 118.0f;
-    int bossHp = 80;
+    long long bossHp = 80;
     float bossMoveAmplitude = 170.0f;
     float bossShotInterval = 1.1f;
     int bossBulletCount = 6;

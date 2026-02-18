@@ -22,7 +22,8 @@ Windows x64 向けの C++ シューティングミニゲームです。
   - チケット数に応じて `POWER Lv.` 上昇
   - 弾数・連射性能・移動性能が強化
 - BGM再生
-  - `assets/BGM/bgm_loop.wav` をループ再生
+  - `assets/BGM/stage1.mp3` 〜 `stage10.mp3` があればステージごとにループ再生
+  - なければ `assets/BGM/bgm_loop.mp3` / `bgm_loop.wav` をループ再生
   - `M` キーでON/OFF
 
 ## 依存関係
@@ -41,7 +42,9 @@ Windows x64 向けの C++ シューティングミニゲームです。
 - `assets/ticket_icon.png` (または `assets/ticket.png` / `assets/3.png`)  
   落下チケット表示用アイコン
 - `assets/BGM/bgm_loop.wav`  
-  ループ再生BGM
+  ループ再生BGM（ステージ別BGM未配置時のフォールバック）
+- `assets/BGM/stage1.mp3` ～ `assets/BGM/stage10.mp3`  
+  ステージ別BGM（推奨、`stage01.mp3` / `bgm_stage1.mp3` / `.wav` も対応）
 
 アイコンが見つからない項目はフォールバック描画で表示されます。
 

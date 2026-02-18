@@ -3,8 +3,18 @@
 #include <algorithm>
 
 namespace {
-constexpr int kBossHpN = 10;
 constexpr int kEnemyHpN = 1;
+constexpr float kStageDurationScale = 2.0f;
+constexpr long long kBossHpStage1 = 9000LL;
+constexpr long long kBossHpStage2 = 400000LL;
+constexpr long long kBossHpStage3 = 800000LL;
+constexpr long long kBossHpStage4 = 36000000LL;
+constexpr long long kBossHpStage5 = 72000000LL;
+constexpr long long kBossHpStage6 = 144000000LL;
+constexpr long long kBossHpStage7 = 288800000LL;
+constexpr long long kBossHpStage8 = 1073741823LL;
+constexpr long long kBossHpStage9 = 2147483647LL;
+constexpr long long kBossHpStage10 = 9223372036LL;
 }
 
 StageBook::StageBook() {
@@ -13,7 +23,7 @@ StageBook::StageBook() {
     for (int i = 0; i < kTotalStages; ++i) {
         StageSpec spec;
         spec.stageNumber = i + 1;
-        spec.stageDurationSec = 16.0f + static_cast<float>(i) * 2.5f;
+        spec.stageDurationSec = (16.0f + static_cast<float>(i) * 2.5f) * kStageDurationScale;
         spec.enemySpawnMinSec = std::max(0.20f, 0.70f - static_cast<float>(i) * 0.04f);
         spec.enemySpawnMaxSec = std::max(0.36f, 1.10f - static_cast<float>(i) * 0.04f);
         spec.enemySpeedMin = 96.0f + static_cast<float>(i) * 10.0f;
@@ -24,22 +34,55 @@ StageBook::StageBook() {
         spec.ticketSpawnMaxSec = std::max(1.35f, 2.25f - static_cast<float>(i) * 0.05f);
         spec.ticketSpeedMin = 66.0f + static_cast<float>(i) * 2.6f;
         spec.ticketSpeedMax = 108.0f + static_cast<float>(i) * 2.8f;
-        spec.bossHp = std::max(1, 30 * kBossHpN * spec.stageNumber); // 300, 600, 900, ..., 3000
+        spec.bossHp = kBossHpStage1;
         spec.bossMoveAmplitude = 140.0f + static_cast<float>(i) * 9.0f;
         spec.bossShotInterval = std::max(0.36f, 1.08f - static_cast<float>(i) * 0.05f);
         spec.bossBulletCount = std::min(14, 6 + i);
 
         switch (spec.stageNumber) {
-        case 1:  spec.bossName = L"スカイ・ガード"; break;
-        case 2:  spec.bossName = L"ルイン・ビーター"; break;
-        case 3:  spec.bossName = L"エレキ・リッパー"; break;
-        case 4:  spec.bossName = L"ヴォイド・コア"; break;
-        case 5:  spec.bossName = L"クロム・ファング"; break;
-        case 6:  spec.bossName = L"レイザー・ハーピー"; break;
-        case 7:  spec.bossName = L"アーク・ドミナ"; break;
-        case 8:  spec.bossName = L"ネオン・ウォーデン"; break;
-        case 9:  spec.bossName = L"ストーム・レクス"; break;
-        case 10: spec.bossName = L"ラスト・オーバーロード"; break;
+        case 1:
+            spec.bossName = L"スカイ・ガード";
+            spec.bossHp = kBossHpStage1;
+            break;
+        case 2:
+            spec.bossName = L"ルイン・ビーター";
+            spec.bossHp = kBossHpStage2;
+            break;
+        case 3:
+            spec.bossName = L"エレキ・リッパー";
+            spec.bossHp = kBossHpStage3;
+            break;
+        case 4:
+            spec.bossName = L"ヴォイド・コア";
+            spec.bossHp = kBossHpStage4;
+            break;
+        case 5:
+            spec.bossName = L"クロム・ファング";
+            spec.bossHp = kBossHpStage5;
+            break;
+        case 6:
+            spec.bossName = L"レイザー・ハーピー";
+            spec.bossHp = kBossHpStage6;
+            break;
+        case 7:
+            spec.bossName = L"アーク・ドミナ";
+            spec.bossHp = kBossHpStage7;
+            break;
+        case 8:
+            spec.bossName = L"ネオン・ウォーデン";
+            spec.bossHp = kBossHpStage8;
+            break;
+        case 9:
+            spec.bossName = L"ストーム・レクス";
+            spec.bossHp = kBossHpStage9;
+            break;
+        case 10:
+            spec.bossName = L"ラスト・オーバーロード";
+            spec.bossHp = kBossHpStage10;
+            break;
+        default:
+            spec.bossName = L"未知のボス";
+            break;
         }
 
         specs_.push_back(spec);

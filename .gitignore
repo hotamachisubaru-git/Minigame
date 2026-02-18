@@ -5,3 +5,6 @@
 *.VC.db
 *.VC.opendb
 vs_buildtools.exe
+*.mp3
+*.wav
+*.png

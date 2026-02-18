@@ -8,6 +8,7 @@
 #include <gdiplus.h>
 
 #include <array>
+#include <filesystem>
 #include <random>
 #include <string>
 #include <vector>
@@ -25,11 +26,29 @@ public:
     void ClearInput();
 
 private:
+    enum class OperationMode {
+        Normal,
+        Wide,
+        Focus,
+    };
+
     void ResetRun();
     void BeginNextStage();
     void SpawnBoss();
     void CompleteStage();
     void HandleShopInput(UINT keyCode);
+    void HandleOperationMenuInput(UINT keyCode);
+    void HandleGameOverInput(UINT keyCode);
+    void HandleGameClearInput(UINT keyCode);
+    void ResetStage10BossFleeState();
+    void TryTriggerStage10BossFlee();
+    void ApplyOperationStageJump(int stageNumber, bool toBoss);
+    void SetPowerLevelFromOperation(int targetPowerLevel);
+    void ContinueFromGameOver();
+    void RecalculatePowerLevel();
+    void CycleOperationMode();
+    const wchar_t* OperationModeLabel() const;
+    const wchar_t* ShotTypeLabel() const;
 
     void UpdatePlayerMovement(float dt);
     void UpdateShooting(float dt);
@@ -40,11 +59,13 @@ private:
     void UpdateEnemyBullets(float dt);
     void UpdateTickets(float dt);
     void UpdateStars(float dt);
+    void UpdateHitEffects(float dt);
     void ResolveCollisions();
     void CleanupEntities();
 
     void FireShotPattern();
     void SpawnBossShotPattern();
+    void ActivateSpecialMove();
     void DamagePlayer(int amount, const wchar_t* reason);
 
     void InitStars();
@@ -52,6 +73,7 @@ private:
     int RandomInt(int minValue, int maxValue);
     float RandomFloat(float minValue, float maxValue);
     bool Chance(int percent);
+    void SpawnHitEffect(float x, float y, bool bossHit);
 
     void DrawScene(Gdiplus::Graphics& g);
     void DrawStars(Gdiplus::Graphics& g);
@@ -61,13 +83,15 @@ private:
     void DrawBoss(Gdiplus::Graphics& g);
     void DrawEnemyBullets(Gdiplus::Graphics& g);
     void DrawTickets(Gdiplus::Graphics& g);
+    void DrawHitEffects(Gdiplus::Graphics& g);
     void DrawHud(Gdiplus::Graphics& g);
     void DrawShopOverlay(Gdiplus::Graphics& g);
+    void DrawOperationOverlay(Gdiplus::Graphics& g);
     void DrawPauseOverlay(Gdiplus::Graphics& g);
     void DrawGameOver(Gdiplus::Graphics& g);
     void DrawGameClear(Gdiplus::Graphics& g);
 
-    void StartBgm();
+    void StartBgm(int stageNumber, bool bossPhase = false);
     void StopBgm();
 
     AssetCatalog assets_;
@@ -77,31 +101,63 @@ private:
 
     float playerX_ = static_cast<float>(kDesignWidth) * 0.5f;
     float playerY_ = static_cast<float>(kDesignHeight) - 140.0f;
-    int playerHp_ = 5;
-    int maxPlayerHp_ = 5;
+    int playerHp_ = 10;
+    int maxPlayerHp_ = 10;
     float playerInvincibleTimer_ = 0.0f;
 
     int ticketPoints_ = 0;
+    int totalTicketsCollected_ = 0;
     int powerLevel_ = 1;
     int attackUpgrade_ = 0;
     int score_ = 0;
 
     int currentStage_ = 1;
     float stageElapsed_ = 0.0f;
+    OperationMode operationMode_ = OperationMode::Normal;
+    bool endlessMode_ = false;
+    int endlessLoop_ = 0;
 
     bool shopOpen_ = false;
     bool paused_ = false;
     bool gameOver_ = false;
     bool gameClear_ = false;
+    bool gameClearChoiceOpen_ = false;
+    int gameClearChoiceIndex_ = 0;
+    int continueCount_ = 0;
+    bool operationJumpToBoss_ = false;
+    bool operationMenuOpen_ = false;
+    int operationMenuCursor_ = 0;
+    bool homingShotEnabled_ = false;
     bool bgmEnabled_ = true;
+    bool stage10BossFleeActive_ = false;
+    int stage10BossFleeCount_ = 0;
+    long long stage10NextFleeHp_ = -1;
+    float stage10FleeTargetX_ = 0.0f;
+    float stage10FleeTargetY_ = 0.0f;
+    float stage10FleeTimer_ = 0.0f;
+    float stage10FleeLockTimer_ = 0.0f;
+    float stage10FleeNoticeTimer_ = 0.0f;
 
     float fireCooldown_ = 0.0f;
     float enemySpawnCooldown_ = 0.0f;
     float ticketSpawnCooldown_ = 0.0f;
+    float specialCooldown_ = 0.0f;
+    float bossHitFxCooldown_ = 0.0f;
 
     std::wstring statusText_ = L"初期化中...";
+    std::filesystem::path currentBgmPath_;
+    bool bgmUsingMci_ = false;
 
     BossState boss_;
+    struct HitEffect {
+        float x = 0.0f;
+        float y = 0.0f;
+        float radius = 10.0f;
+        float life = 0.0f;
+        float maxLife = 0.18f;
+        bool boss = false;
+    };
+    std::vector<HitEffect> hitEffects_;
     std::vector<Bullet> bullets_;
     std::vector<Enemy> enemies_;
     std::vector<EnemyBullet> enemyBullets_;
