@@ -1,0 +1,25 @@
+{
+  "version": 4,
+  "configurations": [
+    {
+      "name": "Win64-MSVC",
+      "intelliSenseMode": "windows-msvc-x64",
+      "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe",
+      "cppStandard": "c++17",
+      "cStandard": "c17",
+      "defines": [
+        "UNICODE",
+        "_UNICODE",
+        "NOMINMAX",
+        "_WIN64",
+        "WIN32",
+        "_WINDOWS"
+      ],
+      "includePath": [
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/assets"
+      ],
+      "configurationProvider": "ms-vscode.cmake-tools"
+    }
+  ]
+}
