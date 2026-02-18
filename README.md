@@ -27,8 +27,8 @@ Windows x64 向けの C++ シューティングミニゲームです。
   - `M` キーでON/OFF
 
 ## 依存関係
-- OS: Windows 10/11 x64
-- ビルドツール: Visual Studio 2022 (MSVC v143 / Desktop C++ / Windows SDK)
+- OS: Windows 11 x64
+- ビルドツール: Visual Studio Code (MSVC v143 / Desktop C++ / Windows SDK)
 - CMake: 3.20 以上
 - リンクするWindows標準ライブラリ: `gdiplus`, `msimg32`, `winmm`
 
