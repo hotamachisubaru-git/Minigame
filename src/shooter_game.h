@@ -29,6 +29,7 @@ private:
     void BeginNextStage();
     void SpawnBoss();
     void CompleteStage();
+    void HandleShopInput(UINT keyCode);
 
     void UpdatePlayerMovement(float dt);
     void UpdateShooting(float dt);
@@ -61,10 +62,10 @@ private:
     void DrawEnemyBullets(Gdiplus::Graphics& g);
     void DrawTickets(Gdiplus::Graphics& g);
     void DrawHud(Gdiplus::Graphics& g);
+    void DrawShopOverlay(Gdiplus::Graphics& g);
     void DrawPauseOverlay(Gdiplus::Graphics& g);
     void DrawGameOver(Gdiplus::Graphics& g);
     void DrawGameClear(Gdiplus::Graphics& g);
-    void DrawStageTransition(Gdiplus::Graphics& g);
 
     void StartBgm();
     void StopBgm();
@@ -77,17 +78,19 @@ private:
     float playerX_ = static_cast<float>(kDesignWidth) * 0.5f;
     float playerY_ = static_cast<float>(kDesignHeight) - 140.0f;
     int playerHp_ = 5;
+    int maxPlayerHp_ = 5;
     float playerInvincibleTimer_ = 0.0f;
 
     int ticketPoints_ = 0;
     int powerLevel_ = 1;
+    int attackUpgrade_ = 0;
+    int shopCoins_ = 0;
     int score_ = 0;
 
     int currentStage_ = 1;
     float stageElapsed_ = 0.0f;
-    bool stageTransition_ = false;
-    float stageTransitionTimer_ = 0.0f;
 
+    bool shopOpen_ = false;
     bool paused_ = false;
     bool gameOver_ = false;
     bool gameClear_ = false;

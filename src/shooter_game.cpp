@@ -109,18 +109,20 @@ void ShooterGame::ResetRun() {
 
     playerX_ = static_cast<float>(kDesignWidth) * 0.5f;
     playerY_ = static_cast<float>(kDesignHeight) - 140.0f;
-    playerHp_ = 5;
+    maxPlayerHp_ = 5;
+    playerHp_ = maxPlayerHp_;
     playerInvincibleTimer_ = 0.0f;
 
     ticketPoints_ = 0;
     powerLevel_ = 1;
+    attackUpgrade_ = 0;
+    shopCoins_ = 0;
     score_ = 0;
 
     currentStage_ = 1;
     stageElapsed_ = 0.0f;
-    stageTransition_ = false;
-    stageTransitionTimer_ = 0.0f;
 
+    shopOpen_ = false;
     paused_ = false;
     gameOver_ = false;
     gameClear_ = false;
@@ -146,6 +148,16 @@ void ShooterGame::HandleKeyDown(UINT keyCode) {
         return;
     }
 
+    if (keyCode == 'R') {
+        ResetRun();
+        return;
+    }
+
+    if (shopOpen_) {
+        HandleShopInput(keyCode);
+        return;
+    }
+
     if (keyCode == 'P') {
         if (!gameOver_ && !gameClear_) {
             paused_ = !paused_;
@@ -165,10 +177,6 @@ void ShooterGame::HandleKeyDown(UINT keyCode) {
         }
         return;
     }
-
-    if (keyCode == 'R' && (gameOver_ || gameClear_)) {
-        ResetRun();
-    }
 }
 
 void ShooterGame::HandleKeyUp(UINT keyCode) {
@@ -181,6 +189,51 @@ void ShooterGame::ClearInput() {
     keys_.fill(false);
 }
 
+void ShooterGame::HandleShopInput(UINT keyCode) {
+    if (!shopOpen_) {
+        return;
+    }
+
+    constexpr int kAtkCost = 2;
+    constexpr int kHpCost = 3;
+
+    if (keyCode == '1') {
+        if (shopCoins_ < kAtkCost) {
+            statusText_ = L"コイン不足: 火力強化には2コイン必要";
+            return;
+        }
+        if (attackUpgrade_ >= 8) {
+            statusText_ = L"火力強化は上限です";
+            return;
+        }
+        shopCoins_ -= kAtkCost;
+        ++attackUpgrade_;
+        statusText_ = L"火力強化を購入: 攻撃力+" + std::to_wstring(attackUpgrade_);
+        return;
+    }
+
+    if (keyCode == '2') {
+        if (shopCoins_ < kHpCost) {
+            statusText_ = L"コイン不足: 最大HP強化には3コイン必要";
+            return;
+        }
+        if (maxPlayerHp_ >= 12) {
+            statusText_ = L"最大HPは上限です";
+            return;
+        }
+        shopCoins_ -= kHpCost;
+        ++maxPlayerHp_;
+        playerHp_ = maxPlayerHp_;
+        statusText_ = L"最大HP強化を購入: HP " + std::to_wstring(maxPlayerHp_);
+        return;
+    }
+
+    if (keyCode == VK_RETURN || keyCode == VK_SPACE || keyCode == 'N') {
+        shopOpen_ = false;
+        BeginNextStage();
+    }
+}
+
 void ShooterGame::Update(float dt) {
     if (paused_) {
         return;
@@ -188,20 +241,16 @@ void ShooterGame::Update(float dt) {
 
     UpdateStars(dt);
 
+    if (shopOpen_) {
+        return;
+    }
+
     if (gameOver_ || gameClear_) {
         return;
     }
 
     if (playerInvincibleTimer_ > 0.0f) {
         playerInvincibleTimer_ = std::max(0.0f, playerInvincibleTimer_ - dt);
-    }
-
-    if (stageTransition_) {
-        stageTransitionTimer_ -= dt;
-        if (stageTransitionTimer_ <= 0.0f) {
-            BeginNextStage();
-        }
-        return;
     }
 
     stageElapsed_ += dt;
@@ -229,13 +278,11 @@ void ShooterGame::Update(float dt) {
     if (playerHp_ <= 0) {
         playerHp_ = 0;
         gameOver_ = true;
-        statusText_ = L"ゲームオーバー - Rキーで再開";
+        statusText_ = L"ゲームオーバー - Rキーでリトライ";
     }
 }
 
 void ShooterGame::BeginNextStage() {
-    stageTransition_ = false;
-    stageTransitionTimer_ = 0.0f;
     stageElapsed_ = 0.0f;
     boss_ = BossState{};
     enemies_.clear();
@@ -245,7 +292,7 @@ void ShooterGame::BeginNextStage() {
     ++currentStage_;
     if (currentStage_ > stageBook_.TotalStages()) {
         gameClear_ = true;
-        statusText_ = L"全10ステージ制覇! Rキーで再挑戦";
+        statusText_ = L"全10ステージ制覇! Rキーでリトライ";
         return;
     }
 
@@ -279,13 +326,23 @@ void ShooterGame::CompleteStage() {
 
     if (currentStage_ >= stageBook_.TotalStages()) {
         gameClear_ = true;
-        statusText_ = L"全10ステージ制覇! Rキーで再挑戦";
+        statusText_ = L"全10ステージ制覇! Rキーでリトライ";
         return;
     }
 
-    stageTransition_ = true;
-    stageTransitionTimer_ = 2.0f;
-    statusText_ = L"ステージ" + std::to_wstring(currentStage_) + L" クリア";
+    const bool healed = playerHp_ < maxPlayerHp_;
+    playerHp_ = maxPlayerHp_;
+
+    const int rewardCoins = 3 + currentStage_;
+    shopCoins_ += rewardCoins;
+    shopOpen_ = true;
+
+    std::wstringstream ss;
+    ss << L"ステージ" << currentStage_ << L" クリア! ショップ開店 (コイン+" << rewardCoins << L")";
+    if (healed) {
+        ss << L" HP全回復";
+    }
+    statusText_ = ss.str();
 }
 
 void ShooterGame::UpdatePlayerMovement(float dt) {
@@ -506,7 +563,7 @@ void ShooterGame::ResolveCollisions() {
             ++ticketPoints_;
             score_ += 30;
 
-            if (ticketPoints_ % 8 == 0 && playerHp_ < 9) {
+            if (ticketPoints_ % 8 == 0 && playerHp_ < maxPlayerHp_) {
                 ++playerHp_;
                 statusText_ = L"チケット回収でHP回復";
             } else {
@@ -566,7 +623,7 @@ void ShooterGame::FireShotPattern() {
 
     const float spreadDeg = 30.0f;
     const float speed = 720.0f;
-    const int damage = std::max(1, powerLevel_ / 3);
+    const int damage = std::max(1, powerLevel_ / 3) + attackUpgrade_;
 
     for (int i = 0; i < bulletCount; ++i) {
         float t = 0.5f;
@@ -716,8 +773,8 @@ void ShooterGame::DrawScene(Graphics& g) {
     DrawPlayer(g);
     DrawHud(g);
 
-    if (stageTransition_) {
-        DrawStageTransition(g);
+    if (shopOpen_) {
+        DrawShopOverlay(g);
     }
     if (paused_) {
         DrawPauseOverlay(g);
@@ -845,7 +902,7 @@ void ShooterGame::DrawHud(Graphics& g) {
 
     std::wstringstream upper;
     upper << L"ステージ " << currentStage_ << L"/" << stageBook_.TotalStages() << L"   強化 Lv." << powerLevel_
-          << L"   HP " << playerHp_;
+          << L"   HP " << playerHp_ << L"/" << maxPlayerHp_;
     DrawText(g, upper.str(), RectF(250.0f, 18.0f, 452.0f, 28.0f), 18.0f, Color(255, 251, 240, 170),
              StringAlignmentNear, FontStyleBold, L"Yu Gothic UI");
 
@@ -862,15 +919,37 @@ void ShooterGame::DrawHud(Graphics& g) {
     }
 
     FillRoundRect(g, RectF(16.0f, 1188.0f, 688.0f, 70.0f), 14.0f, Color(165, 6, 19, 33));
-    DrawText(g, L"移動 WASD/矢印  低速 Shift  P ポーズ  R 再開  M BGM", RectF(32.0f, 1205.0f, 656.0f, 34.0f),
+    DrawText(g, L"移動 WASD/矢印  低速 Shift  P ポーズ/再開  R リトライ  M BGM", RectF(32.0f, 1205.0f, 656.0f, 34.0f),
              18.0f, Color(255, 228, 244, 255), StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
 }
 
-void ShooterGame::DrawPauseOverlay(Graphics& g) {
-    FillRoundRect(g, RectF(140.0f, 470.0f, 440.0f, 220.0f), 24.0f, Color(220, 8, 18, 34));
-    DrawText(g, L"PAUSE", RectF(170.0f, 510.0f, 380.0f, 68.0f), 66.0f, Color(255, 255, 223, 136),
+void ShooterGame::DrawShopOverlay(Graphics& g) {
+    FillRoundRect(g, RectF(90.0f, 420.0f, 540.0f, 420.0f), 24.0f, Color(228, 8, 22, 40));
+    DrawText(g, L"STAGE CLEAR SHOP", RectF(120.0f, 452.0f, 480.0f, 56.0f), 42.0f, Color(255, 255, 221, 132),
              StringAlignmentCenter, FontStyleBold, L"Arial Black");
-    DrawText(g, L"Pキーで再開", RectF(170.0f, 610.0f, 380.0f, 34.0f), 28.0f, Color(255, 225, 238, 250),
+
+    DrawText(g, L"コイン: " + FormatNumber(shopCoins_), RectF(120.0f, 514.0f, 480.0f, 34.0f), 28.0f,
+             Color(255, 241, 248, 255), StringAlignmentCenter, FontStyleBold, L"Arial Black");
+    DrawText(g, L"HPは全回復済み", RectF(120.0f, 548.0f, 480.0f, 28.0f), 22.0f, Color(255, 225, 238, 250),
+             StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
+
+    FillRoundRect(g, RectF(132.0f, 586.0f, 456.0f, 66.0f), 14.0f, Color(190, 17, 47, 78));
+    DrawText(g, L"[1] 火力強化 (2コイン)", RectF(144.0f, 600.0f, 432.0f, 36.0f), 24.0f,
+             Color(255, 245, 247, 250), StringAlignmentNear, FontStyleBold, L"Yu Gothic UI");
+
+    FillRoundRect(g, RectF(132.0f, 662.0f, 456.0f, 66.0f), 14.0f, Color(190, 17, 47, 78));
+    DrawText(g, L"[2] 最大HP+1 (3コイン)", RectF(144.0f, 676.0f, 432.0f, 36.0f), 24.0f,
+             Color(255, 245, 247, 250), StringAlignmentNear, FontStyleBold, L"Yu Gothic UI");
+
+    DrawText(g, L"ENTER / SPACE で次のステージへ", RectF(120.0f, 748.0f, 480.0f, 32.0f), 22.0f,
+             Color(255, 255, 232, 156), StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
+}
+
+void ShooterGame::DrawPauseOverlay(Graphics& g) {
+    FillRoundRect(g, RectF(190.0f, 515.0f, 340.0f, 150.0f), 20.0f, Color(220, 8, 18, 34));
+    DrawText(g, L"PAUSE", RectF(210.0f, 540.0f, 300.0f, 46.0f), 48.0f, Color(255, 255, 223, 136),
+             StringAlignmentCenter, FontStyleBold, L"Arial Black");
+    DrawText(g, L"Pキーで再開", RectF(210.0f, 602.0f, 300.0f, 30.0f), 24.0f, Color(255, 225, 238, 250),
              StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
 }
 
@@ -882,7 +961,7 @@ void ShooterGame::DrawGameOver(Graphics& g) {
              Color(255, 241, 248, 255), StringAlignmentCenter, FontStyleBold, L"Arial Black");
     DrawText(g, L"回収チケット: " + FormatNumber(ticketPoints_), RectF(130.0f, 618.0f, 460.0f, 34.0f), 24.0f,
              Color(255, 223, 238, 255), StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
-    DrawText(g, L"Rキーで再開", RectF(140.0f, 668.0f, 440.0f, 34.0f), 27.0f, Color(255, 255, 232, 156),
+    DrawText(g, L"Rキーでリトライ", RectF(140.0f, 668.0f, 440.0f, 34.0f), 27.0f, Color(255, 255, 232, 156),
              StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
 }
 
@@ -894,15 +973,7 @@ void ShooterGame::DrawGameClear(Graphics& g) {
              Color(255, 241, 248, 255), StringAlignmentCenter, FontStyleBold, L"Arial Black");
     DrawText(g, L"回収チケット: " + FormatNumber(ticketPoints_), RectF(120.0f, 606.0f, 480.0f, 34.0f), 24.0f,
              Color(255, 223, 238, 255), StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
-    DrawText(g, L"Rキーで最初から再挑戦", RectF(120.0f, 668.0f, 480.0f, 34.0f), 26.0f, Color(255, 255, 232, 156),
-             StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
-}
-
-void ShooterGame::DrawStageTransition(Graphics& g) {
-    FillRoundRect(g, RectF(180.0f, 520.0f, 360.0f, 130.0f), 20.0f, Color(220, 8, 18, 34));
-    DrawText(g, L"ステージクリア!", RectF(200.0f, 545.0f, 320.0f, 34.0f), 30.0f, Color(255, 255, 220, 126),
-             StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
-    DrawText(g, L"次のステージへ移行中", RectF(200.0f, 586.0f, 320.0f, 30.0f), 22.0f, Color(255, 226, 238, 249),
+    DrawText(g, L"Rキーでリトライ", RectF(120.0f, 668.0f, 480.0f, 34.0f), 26.0f, Color(255, 255, 232, 156),
              StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
 }
 
