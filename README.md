@@ -59,6 +59,7 @@ cmake --build --preset release-x64
 - キーボード
   - `W` `A` `S` `D`: 移動
   - `↑` `↓` `←` `→`: 移動
+  - `Shift` + 移動: 低速移動
   - `R`: ゲームオーバー後にリトライ
   - `M`: BGM ON/OFF
   - `Esc`: 終了

@@ -277,10 +277,10 @@ private:
             bgmEnabled_ = !bgmEnabled_;
             if (bgmEnabled_) {
                 StartBgm();
-                statusText_ = L"BGM ON";
+                statusText_ = L"BGM を有効にしました";
             } else {
                 StopBgm();
-                statusText_ = L"BGM OFF";
+                statusText_ = L"BGM を無効にしました";
             }
         }
     }
@@ -319,7 +319,7 @@ private:
         ticketSpawnCooldown_ = 1.2f;
 
         gameOver_ = false;
-        statusText_ = L"WASD / 矢印で移動。チケットを回収して強化";
+        statusText_ = L"WASD / 矢印で移動。Shiftで低速移動";
     }
 
     void UpdateGame(float dt) {
@@ -344,7 +344,7 @@ private:
         if (playerHp_ <= 0) {
             playerHp_ = 0;
             gameOver_ = true;
-            statusText_ = L"GAME OVER - Rキーで再開";
+            statusText_ = L"ゲームオーバー - Rキーで再開";
         }
     }
 
@@ -371,7 +371,11 @@ private:
             moveY /= length;
         }
 
-        const float speed = 300.0f + static_cast<float>(powerLevel_ - 1) * 8.0f;
+        float speed = 390.0f + static_cast<float>(powerLevel_ - 1) * 12.0f;
+        const bool slowMode = IsDown(VK_SHIFT) || IsDown(VK_LSHIFT) || IsDown(VK_RSHIFT);
+        if (slowMode) {
+            speed *= 0.45f;
+        }
         playerX_ += moveX * speed * dt;
         playerY_ += moveY * speed * dt;
 
@@ -454,7 +458,7 @@ private:
         TicketDrop ticket;
         ticket.x = RandomFloat(45.0f, static_cast<float>(kDesignWidth) - 45.0f);
         ticket.y = -34.0f;
-        ticket.speed = RandomFloat(120.0f, 190.0f);
+        ticket.speed = RandomFloat(72.0f, 118.0f);
         ticket.size = RandomFloat(30.0f, 38.0f);
         tickets_.push_back(ticket);
 
@@ -513,7 +517,7 @@ private:
                         TicketDrop bonus;
                         bonus.x = enemy.x;
                         bonus.y = enemy.y;
-                        bonus.speed = RandomFloat(120.0f, 165.0f);
+                        bonus.speed = RandomFloat(75.0f, 112.0f);
                         bonus.size = 32.0f;
                         tickets_.push_back(bonus);
                     }
@@ -735,9 +739,9 @@ private:
     }
 
     void DrawHud(Graphics& g) {
-        FillRoundRect(g, RectF(0.0f, 0.0f, 720.0f, 122.0f), 0.0f, Color(205, 4, 12, 22));
+        FillRoundRect(g, RectF(0.0f, 0.0f, 720.0f, 136.0f), 0.0f, Color(205, 4, 12, 22));
 
-        RectF iconRect(26.0f, 24.0f, 44.0f, 44.0f);
+        RectF iconRect(24.0f, 20.0f, 42.0f, 42.0f);
         if (pointIcon_) {
             g.DrawImage(pointIcon_.get(), iconRect);
         } else {
@@ -746,38 +750,42 @@ private:
                      L"Arial Black");
         }
 
-        DrawText(g, FormatNumber(ticketPoints_), RectF(78.0f, 21.0f, 200.0f, 48.0f), 42.0f,
+        DrawText(g, FormatNumber(ticketPoints_), RectF(74.0f, 18.0f, 180.0f, 42.0f), 36.0f,
                  Color(255, 248, 250, 255), StringAlignmentNear, FontStyleBold, L"Arial Black");
-        DrawText(g, L"Ticket Power", RectF(78.0f, 66.0f, 200.0f, 24.0f), 20.0f,
+        DrawText(g, L"チケット", RectF(74.0f, 60.0f, 180.0f, 22.0f), 20.0f,
                  Color(255, 180, 216, 242), StringAlignmentNear, FontStyleBold, L"Yu Gothic UI");
 
-        std::wstringstream right;
-        right << L"POWER Lv." << powerLevel_ << L"   HP " << playerHp_ << L"   SCORE " << FormatNumber(score_);
-        DrawText(g, right.str(), RectF(270.0f, 26.0f, 430.0f, 40.0f), 24.0f, Color(255, 251, 240, 170),
+        std::wstringstream upper;
+        upper << L"強化 Lv." << powerLevel_ << L"    HP " << playerHp_;
+        DrawText(g, upper.str(), RectF(260.0f, 20.0f, 430.0f, 28.0f), 20.0f, Color(255, 251, 240, 170),
                  StringAlignmentNear, FontStyleBold, L"Arial Black");
 
-        DrawText(g, statusText_, RectF(26.0f, 88.0f, 668.0f, 24.0f), 18.0f, Color(255, 220, 236, 248),
+        std::wstring scoreLabel = L"スコア " + FormatNumber(score_);
+        DrawText(g, scoreLabel, RectF(260.0f, 48.0f, 430.0f, 34.0f), 31.0f, Color(255, 241, 248, 255),
+                 StringAlignmentNear, FontStyleBold, L"Arial Black");
+
+        DrawText(g, statusText_, RectF(26.0f, 98.0f, 668.0f, 30.0f), 17.0f, Color(255, 220, 236, 248),
                  StringAlignmentNear, FontStyleBold, L"Yu Gothic UI");
 
         FillRoundRect(g, RectF(16.0f, 1188.0f, 688.0f, 70.0f), 14.0f, Color(165, 6, 19, 33));
-        DrawText(g, L"MOVE: WASD / Arrow    R: Retry    M: BGM On/Off", RectF(32.0f, 1205.0f, 656.0f, 34.0f),
-                 20.0f, Color(255, 228, 244, 255), StringAlignmentCenter, FontStyleBold, L"Arial Black");
+        DrawText(g, L"移動 WASD/矢印  低速 Shift  R 再開  M BGM切替", RectF(32.0f, 1205.0f, 656.0f, 34.0f),
+                 18.0f, Color(255, 228, 244, 255), StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
     }
 
     void DrawGameOver(Graphics& g) {
         FillRoundRect(g, RectF(100.0f, 430.0f, 520.0f, 310.0f), 24.0f, Color(220, 8, 19, 38));
-        DrawText(g, L"GAME OVER", RectF(130.0f, 470.0f, 460.0f, 84.0f), 68.0f, Color(255, 255, 212, 118),
+        DrawText(g, L"ゲームオーバー", RectF(130.0f, 470.0f, 460.0f, 78.0f), 56.0f, Color(255, 255, 212, 118),
                  StringAlignmentCenter, FontStyleBold, L"Arial Black");
 
-        std::wstring result = L"SCORE " + FormatNumber(score_);
-        DrawText(g, result, RectF(140.0f, 562.0f, 440.0f, 50.0f), 40.0f, Color(255, 241, 248, 255),
+        std::wstring result = L"スコア " + FormatNumber(score_);
+        DrawText(g, result, RectF(140.0f, 558.0f, 440.0f, 48.0f), 36.0f, Color(255, 241, 248, 255),
                  StringAlignmentCenter, FontStyleBold, L"Arial Black");
 
-        std::wstring ticketText = L"Collected Ticket: " + FormatNumber(ticketPoints_);
-        DrawText(g, ticketText, RectF(120.0f, 620.0f, 480.0f, 34.0f), 24.0f, Color(255, 223, 238, 255),
+        std::wstring ticketText = L"回収チケット: " + FormatNumber(ticketPoints_);
+        DrawText(g, ticketText, RectF(120.0f, 618.0f, 480.0f, 34.0f), 24.0f, Color(255, 223, 238, 255),
                  StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
 
-        DrawText(g, L"Rキーで再開", RectF(140.0f, 670.0f, 440.0f, 34.0f), 27.0f,
+        DrawText(g, L"Rキーで再開", RectF(140.0f, 668.0f, 440.0f, 34.0f), 27.0f,
                  Color(255, 255, 232, 156), StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
     }
 
