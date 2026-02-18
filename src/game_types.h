@@ -20,7 +20,7 @@ struct Enemy {
     float y = 0.0f;
     float speed = 120.0f;
     float radius = 24.0f;
-    int hp = 1;
+    int hp = 4;
     float wobble = 0.0f;
     bool active = true;
 };
