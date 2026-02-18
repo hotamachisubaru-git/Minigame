@@ -116,7 +116,6 @@ void ShooterGame::ResetRun() {
     ticketPoints_ = 0;
     powerLevel_ = 1;
     attackUpgrade_ = 0;
-    shopCoins_ = 0;
     score_ = 0;
 
     currentStage_ = 1;
@@ -198,30 +197,30 @@ void ShooterGame::HandleShopInput(UINT keyCode) {
     constexpr int kHpCost = 3;
 
     if (keyCode == '1') {
-        if (shopCoins_ < kAtkCost) {
-            statusText_ = L"コイン不足: 火力強化には2コイン必要";
+        if (ticketPoints_ < kAtkCost) {
+            statusText_ = L"チケット不足: 火力強化には2枚必要";
             return;
         }
         if (attackUpgrade_ >= 8) {
             statusText_ = L"火力強化は上限です";
             return;
         }
-        shopCoins_ -= kAtkCost;
+        ticketPoints_ -= kAtkCost;
         ++attackUpgrade_;
         statusText_ = L"火力強化を購入: 攻撃力+" + std::to_wstring(attackUpgrade_);
         return;
     }
 
     if (keyCode == '2') {
-        if (shopCoins_ < kHpCost) {
-            statusText_ = L"コイン不足: 最大HP強化には3コイン必要";
+        if (ticketPoints_ < kHpCost) {
+            statusText_ = L"チケット不足: 最大HP強化には3枚必要";
             return;
         }
         if (maxPlayerHp_ >= 12) {
             statusText_ = L"最大HPは上限です";
             return;
         }
-        shopCoins_ -= kHpCost;
+        ticketPoints_ -= kHpCost;
         ++maxPlayerHp_;
         playerHp_ = maxPlayerHp_;
         statusText_ = L"最大HP強化を購入: HP " + std::to_wstring(maxPlayerHp_);
@@ -330,19 +329,9 @@ void ShooterGame::CompleteStage() {
         return;
     }
 
-    const bool healed = playerHp_ < maxPlayerHp_;
     playerHp_ = maxPlayerHp_;
-
-    const int rewardCoins = 3 + currentStage_;
-    shopCoins_ += rewardCoins;
     shopOpen_ = true;
-
-    std::wstringstream ss;
-    ss << L"ステージ" << currentStage_ << L" クリア! ショップ開店 (コイン+" << rewardCoins << L")";
-    if (healed) {
-        ss << L" HP全回復";
-    }
-    statusText_ = ss.str();
+    statusText_ = L"ステージ" + std::to_wstring(currentStage_) + L" クリア! ショップを開きました";
 }
 
 void ShooterGame::UpdatePlayerMovement(float dt) {
@@ -928,17 +917,15 @@ void ShooterGame::DrawShopOverlay(Graphics& g) {
     DrawText(g, L"ステージクリア ショップ", RectF(110.0f, 454.0f, 500.0f, 54.0f), 34.0f,
              Color(255, 255, 221, 132), StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
 
-    DrawText(g, L"コイン: " + FormatNumber(shopCoins_), RectF(120.0f, 514.0f, 480.0f, 34.0f), 28.0f,
+    DrawText(g, L"所持チケット: " + FormatNumber(ticketPoints_), RectF(120.0f, 514.0f, 480.0f, 34.0f), 28.0f,
              Color(255, 241, 248, 255), StringAlignmentCenter, FontStyleBold, L"Arial Black");
-    DrawText(g, L"HPは全回復済み", RectF(120.0f, 548.0f, 480.0f, 28.0f), 22.0f, Color(255, 225, 238, 250),
-             StringAlignmentCenter, FontStyleBold, L"Yu Gothic UI");
 
-    FillRoundRect(g, RectF(132.0f, 586.0f, 456.0f, 66.0f), 14.0f, Color(190, 17, 47, 78));
-    DrawText(g, L"[1] 火力強化 (2コイン)", RectF(144.0f, 600.0f, 432.0f, 36.0f), 24.0f,
+    FillRoundRect(g, RectF(132.0f, 570.0f, 456.0f, 66.0f), 14.0f, Color(190, 17, 47, 78));
+    DrawText(g, L"[1] 火力強化 (2チケット)", RectF(144.0f, 584.0f, 432.0f, 36.0f), 24.0f,
              Color(255, 245, 247, 250), StringAlignmentNear, FontStyleBold, L"Yu Gothic UI");
 
-    FillRoundRect(g, RectF(132.0f, 662.0f, 456.0f, 66.0f), 14.0f, Color(190, 17, 47, 78));
-    DrawText(g, L"[2] 最大HP+1 (3コイン)", RectF(144.0f, 676.0f, 432.0f, 36.0f), 24.0f,
+    FillRoundRect(g, RectF(132.0f, 646.0f, 456.0f, 66.0f), 14.0f, Color(190, 17, 47, 78));
+    DrawText(g, L"[2] 最大HP+1 (3チケット)", RectF(144.0f, 660.0f, 432.0f, 36.0f), 24.0f,
              Color(255, 245, 247, 250), StringAlignmentNear, FontStyleBold, L"Yu Gothic UI");
 
     DrawText(g, L"ENTER / SPACE で次のステージへ", RectF(120.0f, 748.0f, 480.0f, 32.0f), 20.0f,

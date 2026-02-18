@@ -84,7 +84,6 @@ private:
     int ticketPoints_ = 0;
     int powerLevel_ = 1;
     int attackUpgrade_ = 0;
-    int shopCoins_ = 0;
     int score_ = 0;
 
     int currentStage_ = 1;
